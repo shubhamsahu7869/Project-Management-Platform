@@ -24,3 +24,5 @@ services:
         sync: false
       - key: INITIAL_ADMIN_PASSWORD
         sync: false
+      - key: INITIAL_ADMIN_RESET_EXISTING
+        sync: false

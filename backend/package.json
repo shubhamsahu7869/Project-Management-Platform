@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit",
     "prisma:generate": "node ../node_modules/prisma/build/index.js generate",
     "prisma:deploy": "node ../node_modules/prisma/build/index.js migrate deploy",
+    "admin:bootstrap": "tsx prisma/bootstrap-admin.ts",
     "prisma:migrate": "node ../node_modules/prisma/build/index.js migrate dev",
     "prisma:seed": "tsx prisma/seed.ts"
   },

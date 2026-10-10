@@ -5,7 +5,7 @@ services:
     plan: free
     rootDir: .
     buildCommand: npm ci --include=dev && npm run prisma:generate --workspace backend && npm run build --workspace backend
-    startCommand: npm run prisma:deploy --workspace backend && npm run start --workspace backend
+    startCommand: npm run prisma:deploy --workspace backend && npm run admin:bootstrap --workspace backend && npm run start --workspace backend
     healthCheckPath: /api/health
     envVars:
       - key: NODE_VERSION
@@ -18,3 +18,9 @@ services:
         sync: false
       - key: JWT_SECRET
         generateValue: true
+      - key: INITIAL_ADMIN_EMAIL
+        sync: false
+      - key: INITIAL_ADMIN_NAME
+        sync: false
+      - key: INITIAL_ADMIN_PASSWORD
+        sync: false

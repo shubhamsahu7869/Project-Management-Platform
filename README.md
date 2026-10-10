@@ -37,7 +37,7 @@ NEXT_PUBLIC_SOCKET_URL=https://<render-api-host>
 
 After the first Vercel deployment, add its exact origin (for example, `https://<vercel-project>.vercel.app`) to Render's `FRONTEND_URL`, then redeploy the API. If using custom domains, use frontend and API subdomains of the same domain where possible so browser cookie policies treat them as same-site. The session cookie is Secure and cross-site-enabled in production; browsers that block third-party cookies may require same-site custom domains.
 
-For a new database, create PostgreSQL in your hosting provider and set its connection string as Render's `DATABASE_URL`. The app does not automatically seed production users; create or seed an administrator using a secure, private deployment workflow. Never expose the demo credentials in a public deployment.
+For a new database, create PostgreSQL in your hosting provider and set its connection string as Render's `DATABASE_URL`. To bootstrap the first production administrator, set `INITIAL_ADMIN_EMAIL`, `INITIAL_ADMIN_NAME`, and a strong `INITIAL_ADMIN_PASSWORD` (at least 12 characters) in Render. The startup command hashes the password and creates the administrator without changing an existing account. Remove the bootstrap variables from Render after the first successful startup. Production login does not display or prefill the local demo credentials. Never seed public demo accounts into production.
 
 ## Demo users
 

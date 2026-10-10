@@ -4,8 +4,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Bell, FolderKanban, LayoutDashboard, LogOut, Settings, Users } from "lucide-react";
 import { api, User } from "@/lib/api";
-import { useNotificationRealtime } from "@/hooks/use-notification-realtime";
+import { useProjectRealtime } from "@/hooks/use-project-realtime";
 import { toast } from "sonner";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const links = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
@@ -18,11 +19,18 @@ const links = [
 export function AppShell({ user, children }: { user: User; children: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
-  useNotificationRealtime();
+  const cache = useQueryClient();
+  const realtimeStatus = useProjectRealtime(user.id);
+  const notifications = useQuery({
+    queryKey: ["notifications"],
+    queryFn: async () => (await api.get<{ unreadCount: number }>("/notifications")).data,
+    staleTime: 30_000
+  });
   const visibleLinks = links.filter(link => !link.admin || user.role === "ADMIN");
   const logout = async () => {
     try {
       await api.post("/auth/logout");
+      cache.clear();
       router.replace("/login");
       router.refresh();
     } catch {
@@ -32,7 +40,7 @@ export function AppShell({ user, children }: { user: User; children: React.React
   const navigation = (
     <nav>
       {visibleLinks.map(({ href, label, icon: Icon }) => (
-        <Link key={href} href={href} className={path.startsWith(href) ? "active" : ""}>
+        <Link key={href} href={href} className={path.startsWith(href) ? "active" : ""} aria-current={path.startsWith(href) ? "page" : undefined}>
           <Icon size={18} />
           {label}
         </Link>
@@ -55,7 +63,16 @@ export function AppShell({ user, children }: { user: User; children: React.React
       <main>
         <header>
           <div><p className="eyebrow">COLLABORATIVE DELIVERY</p><h1>{links.find(link => path.startsWith(link.href))?.label || "NeoStats"}</h1></div>
-          <Link href="/notifications" className="bell" aria-label="Notifications"><Bell size={20} /></Link>
+          <div className="header-actions">
+            <span className={`realtime-status ${realtimeStatus}`} role="status" aria-live="polite" aria-label={`Real-time ${realtimeStatus}`}>
+              <span className="realtime-dot" />
+              {realtimeStatus === "connected" ? "Connected" : realtimeStatus === "reconnecting" ? "Reconnecting" : realtimeStatus === "connecting" ? "Connecting" : "Disconnected"}
+            </span>
+            <Link href="/notifications" className="bell" aria-label={notifications.data?.unreadCount ? `Notifications, ${notifications.data.unreadCount} unread` : "Notifications"}>
+              <Bell size={20} />
+              {!!notifications.data?.unreadCount && <span className="unread-badge">{notifications.data.unreadCount > 99 ? "99+" : notifications.data.unreadCount}</span>}
+            </Link>
+          </div>
         </header>
         <div className="mobile-navigation">
           {navigation}

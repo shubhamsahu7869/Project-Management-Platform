@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: neostats-api
+    runtime: node
+    rootDir: .
+    buildCommand: npm ci --include=dev && npm run prisma:generate --workspace backend && npm run build --workspace backend
+    startCommand: npm run prisma:deploy --workspace backend && npm run start --workspace backend
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22.17.0
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true

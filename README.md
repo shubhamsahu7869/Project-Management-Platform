@@ -22,7 +22,22 @@ npm.cmd --workspace backend run prisma:seed
 npm.cmd run dev
 ```
 
-Open `http://localhost:3000`; API health is at `http://localhost:4000/api/health`.
+By default, the frontend runs on `http://localhost:3000`; if that port is already occupied, Next.js will automatically switch to the next available port such as `3001` or `3002`. The backend CORS config accepts those local ports so the app continues to work. API health is at `http://localhost:4000/api/health`.
+
+## Deploy to Vercel and Render
+
+The frontend and API are separate services. Connect this repository to Render using the root `render.yaml` Blueprint to create the API. Set `DATABASE_URL` to a PostgreSQL connection string and `FRONTEND_URL` to the exact HTTPS origin of the deployed frontend (no trailing slash). Render generates `JWT_SECRET`; do not use the demo secret in production. The API runs Prisma migrations during startup and reports health at `/api/health`.
+
+In Vercel, import the same repository and set the project Root Directory to `frontend`. Add these Production environment variables, substituting the deployed Render API origin:
+
+```text
+NEXT_PUBLIC_API_URL=https://<render-api-host>/api
+NEXT_PUBLIC_SOCKET_URL=https://<render-api-host>
+```
+
+After the first Vercel deployment, add its exact origin (for example, `https://<vercel-project>.vercel.app`) to Render's `FRONTEND_URL`, then redeploy the API. If using custom domains, use frontend and API subdomains of the same domain where possible so browser cookie policies treat them as same-site. The session cookie is Secure and cross-site-enabled in production; browsers that block third-party cookies may require same-site custom domains.
+
+For a new database, create PostgreSQL in your hosting provider and set its connection string as Render's `DATABASE_URL`. The app does not automatically seed production users; create or seed an administrator using a secure, private deployment workflow. Never expose the demo credentials in a public deployment.
 
 ## Demo users
 

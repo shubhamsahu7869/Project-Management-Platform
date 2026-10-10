@@ -13,11 +13,17 @@ export default function Projects() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const me = useQuery({ queryKey: ["me"], queryFn: () => getData<User>("/auth/me") });
-  const projects = useQuery({ queryKey: ["projects"], queryFn: () => getData<Project[]>("/projects") });
+  const projects = useQuery({
+    queryKey: ["projects", me.data?.id],
+    enabled: !!me.data?.id,
+    staleTime: 30_000,
+    queryFn: () => getData<Project[]>("/projects")
+  });
   const create = useMutation({
     mutationFn: () => api.post("/projects", { name, description, status: "PLANNING" }),
     onSuccess: () => {
       cache.invalidateQueries({ queryKey: ["projects"] });
+      cache.invalidateQueries({ queryKey: ["dashboard-projects"] });
       setCreating(false);
       setName("");
       setDescription("");
@@ -40,8 +46,8 @@ export default function Projects() {
         </form>
       )}
       <div className="project-grid">
-        {projects.isPending && <p>Loading projects…</p>}
-        {projects.isError && <p className="form-error">Unable to load projects.</p>}
+        {projects.isPending && <p className="board-message">Loading projects…</p>}
+        {projects.isError && <p className="form-error" role="alert">Unable to load projects.</p>}
         {projects.data?.map(project => (
           <Link className="project-card" href={`/projects/${project.id}`} key={project.id}>
             <div className="card-top"><span className={`status ${project.status.toLowerCase()}`}>{project.status.replace("_", " ")}</span><span>{project._count?.tasks || 0} tasks</span></div>
@@ -49,7 +55,7 @@ export default function Projects() {
             <footer><span>{project.manager?.name || "No project manager"}</span><span>{project.dueDate ? new Date(project.dueDate).toLocaleDateString() : "No due date"}</span></footer>
           </Link>
         ))}
-        {!projects.isPending && !projects.data?.length && <div className="empty">No projects are available to you yet.</div>}
+        {!projects.isPending && !projects.isError && !projects.data?.length && <div className="empty">No projects are available to you yet.</div>}
       </div>
     </Guard>
   );

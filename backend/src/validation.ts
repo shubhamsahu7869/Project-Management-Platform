@@ -1,0 +1,10 @@
+import { z } from "zod";
+export const id=z.string().cuid();
+export const pagination=z.object({page:z.coerce.number().int().min(1).default(1),limit:z.coerce.number().int().min(1).max(100).default(20)});
+export const login=z.object({email:z.string().trim().email().transform(v=>v.toLowerCase()),password:z.string().min(1)});
+export const userCreate=z.object({name:z.string().trim().min(2).max(100),email:z.string().trim().email().transform(v=>v.toLowerCase()),password:z.string().min(10).max(128),role:z.enum(["ADMIN","PROJECT_MANAGER","TEAM_MEMBER","VIEWER"])});
+export const projectCreate=z.object({name:z.string().trim().min(2).max(150),description:z.string().max(5000).default(""),managerId:id.optional(),status:z.enum(["PLANNING","ACTIVE","ON_HOLD","COMPLETED"]).default("PLANNING"),startDate:z.coerce.date().optional(),dueDate:z.coerce.date().optional()}).refine(v=>!v.startDate||!v.dueDate||v.startDate<=v.dueDate,{message:"Due date must follow start date"});
+export const projectUpdate=z.object({name:z.string().trim().min(2).max(150).optional(),description:z.string().max(5000).optional(),managerId:id.nullable().optional(),status:z.enum(["PLANNING","ACTIVE","ON_HOLD","COMPLETED"]).optional(),startDate:z.coerce.date().nullable().optional(),dueDate:z.coerce.date().nullable().optional()});
+export const taskCreate=z.object({projectId:id,title:z.string().trim().min(2).max(200),description:z.string().max(10000).default(""),status:z.enum(["TODO","IN_PROGRESS","IN_REVIEW","DONE"]).default("TODO"),priority:z.enum(["LOW","MEDIUM","HIGH","URGENT"]).default("MEDIUM"),assigneeId:id.nullable().optional(),dueDate:z.coerce.date().nullable().optional()});
+export const taskUpdate=taskCreate.omit({projectId:true}).partial().extend({version:z.number().int().positive()});
+export const comment=z.object({content:z.string().trim().min(1).max(5000)});

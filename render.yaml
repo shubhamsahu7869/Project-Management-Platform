@@ -2,6 +2,7 @@ services:
   - type: web
     name: neostats-api
     runtime: node
+    plan: free
     rootDir: .
     buildCommand: npm ci --include=dev && npm run prisma:generate --workspace backend && npm run build --workspace backend
     startCommand: npm run prisma:deploy --workspace backend && npm run start --workspace backend
